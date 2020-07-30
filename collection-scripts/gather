@@ -44,5 +44,10 @@ for localns in $(/usr/bin/oc get migrationcontrollers.migration.openshift.io --a
 
   # Collect the logs
   /usr/bin/gather_logs
+
+  # Test Marek
+  mkdir /must-gather/mtest
+  env >> /must-gather/mtest/env
+  /usr/bin/oc get all --all-namespaces >> /must-gather/mtest/all
 done
 exit 0
