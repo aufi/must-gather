@@ -1,11 +1,17 @@
 #!/bin/bash
 
-unset KUBECONFIG    # needed?
+unset KUBECONFIG
+
+
+echo "Snapshotting prometheus (may take 15s) ..."
+queue /tmp/artifacts/metrics/prometheus.tar.gz oc --insecure-skip-tls-verify exec -n openshift-monitoring prometheus-k8s-0 -- tar cvzf - -C /prometheus .
+FILTER=gzip queue /tmp/artifacts/metrics/prometheus-target-metadata.json.gz oc --insecure-skip-tls-verify exec -n openshift-monitoring prometheus-k8s-0 -- /bin/bash -c "curl -G http://localhost:9090/api/v1/targets/metadata --data-urlencode 'match_target={instance!=\"\"}'"
+
 
 # Test/general info
-mkdir /must-gather/mtest
-env >> /must-gather/mtest/env
-/usr/bin/oc get all --all-namespaces >> /must-gather/mtest/all
+mkdir /must-gather/metrics
+env >> /must-gather/metrics/env
+/usr/bin/oc get all --all-namespaces >> /must-gather/metrics/all
 
 # Metrics
 prometheus_endpoint=$(oc get route prometheus-k8s -n openshift-monitoring -o=custom-columns=NAME:.spec.host --no-headers)
@@ -15,4 +21,6 @@ echo "Found Prometheus monitoring endpoint ${prometheus_endpoint}"
 temp_session_cookies="97f6663f1252f61343f526ad937cfc1a=3c97f94499c76bc946ac3b6ddda80b83; _oauth_proxy=a3ViZTphZG1pbkBjbHVzdGVyLmxvY2Fs|1596203385|ENbmp9JJie9t9-cHTKRFFcodb0k="
 
 # query the prometheus
-curl -k --cookie "${temp_session_cookies}" "${prometheus_endpoint}/api/v1/query?query=get_token_count" >> /must-gather/mtest/metric_test.json
+curl -k --cookie "${temp_session_cookies}" "${prometheus_endpoint}/api/v1/query?query=cam_app_workload_migrations,mtc_client" >> /must-gather/metrics/metric_test.json
+
+curl -k "${prometheus_endpoint}/api/v1/targets/metadata" >> /must-gather/metrics/metric_metadata.json
