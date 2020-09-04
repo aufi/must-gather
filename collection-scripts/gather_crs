@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 unset KUBECONFIG
 for localns in $(/usr/bin/oc get migrationcontrollers.migration.openshift.io --all-namespaces --no-headers | awk '{print $1}'); do
   clusters=()
@@ -57,3 +59,5 @@ for localns in $(/usr/bin/oc get migrationcontrollers.migration.openshift.io --a
     done
   done
 done
+
+set +x

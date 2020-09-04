@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # Prepare gather setup
 unset KUBECONFIG
 object_collection_path="/must-gather/metrics"
@@ -30,3 +32,5 @@ do
   echo "${data}\\" >> "${object_collection_path}/prometheus_queries/${metric_name}.html"
   cat /usr/bin/_metrics_chart_template_part_2.html >> "${object_collection_path}/prometheus_queries/${metric_name}.html"
 done
+
+set +x
